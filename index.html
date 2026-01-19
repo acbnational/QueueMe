@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="QueueMe - Create Live365 MultiTrack CSV cue sheets with an accessible, keyboard-first interface">
+  <title>QueueMe - Live365 CSV Generator</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <!-- Skip Link -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- Live Regions for Screen Readers -->
+  <div id="live-region-polite" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+  <div id="live-region-assertive" class="visually-hidden" aria-live="assertive" aria-atomic="true"></div>
+
+  <!-- Header -->
+  <header class="app-header" role="banner">
+    <div class="header-content">
+      <div class="header-left">
+        <h1 class="app-title">QueueMe</h1>
+        <span class="app-subtitle">Live365 CSV Generator</span>
+      </div>
+      <div class="header-center" id="file-info" aria-live="polite">
+        <span class="file-label">File:</span>
+        <span class="file-name" id="file-name-display">No file</span>
+      </div>
+      <nav class="header-actions" aria-label="Main actions">
+        <button type="button" id="btn-new" class="btn btn-secondary" aria-keyshortcuts="Control+n">
+          <span class="btn-icon" aria-hidden="true">+</span>
+          New
+        </button>
+        <button type="button" id="btn-import" class="btn btn-secondary" aria-keyshortcuts="Control+i">
+          <span class="btn-icon" aria-hidden="true">↑</span>
+          Import
+        </button>
+        <button type="button" id="btn-export" class="btn btn-primary" aria-keyshortcuts="Control+s" disabled>
+          <span class="btn-icon" aria-hidden="true">↓</span>
+          Export
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Error Summary Region -->
+  <section id="error-summary" class="error-summary" role="alert" aria-labelledby="error-summary-heading" hidden>
+    <h2 id="error-summary-heading" class="error-summary-heading"></h2>
+    <ul id="error-summary-list" class="error-summary-list"></ul>
+  </section>
+
+  <!-- Main Content -->
+  <main id="main-content" role="main">
+    <!-- Privacy Notice -->
+    <div class="privacy-notice" role="note">
+      <span class="privacy-icon" aria-hidden="true">🔒</span>
+      Your data stays in your browser. Files are processed locally and never uploaded.
+    </div>
+
+    <!-- Quick Add Form -->
+    <section class="quick-add-section" aria-labelledby="quick-add-heading">
+      <h2 id="quick-add-heading" class="section-heading">Quick Add</h2>
+      <form id="quick-add-form" class="quick-add-form" novalidate>
+        <div class="form-row">
+          <!-- Time Builder -->
+          <fieldset class="time-builder">
+            <legend class="field-label">Offset (HH:MM:SS.mmm) <span class="required-indicator" aria-hidden="true">*</span></legend>
+            <div class="time-inputs">
+              <div class="time-input-group">
+                <label for="offset-hours" class="visually-hidden">Hours</label>
+                <input type="number" id="offset-hours" class="time-input" min="0" max="99" value="00" 
+                       aria-describedby="offset-error" aria-required="true" placeholder="HH">
+                <span class="time-label" aria-hidden="true">h</span>
+              </div>
+              <span class="time-separator" aria-hidden="true">:</span>
+              <div class="time-input-group">
+                <label for="offset-minutes" class="visually-hidden">Minutes</label>
+                <input type="number" id="offset-minutes" class="time-input" min="0" max="59" value="00" 
+                       aria-describedby="offset-error" aria-required="true" placeholder="MM">
+                <span class="time-label" aria-hidden="true">m</span>
+              </div>
+              <span class="time-separator" aria-hidden="true">:</span>
+              <div class="time-input-group">
+                <label for="offset-seconds" class="visually-hidden">Seconds</label>
+                <input type="number" id="offset-seconds" class="time-input" min="0" max="59" value="00" 
+                       aria-describedby="offset-error" aria-required="true" placeholder="SS">
+                <span class="time-label" aria-hidden="true">s</span>
+              </div>
+              <span class="time-separator" aria-hidden="true">.</span>
+              <div class="time-input-group time-input-group-ms">
+                <label for="offset-ms" class="visually-hidden">Milliseconds</label>
+                <input type="number" id="offset-ms" class="time-input time-input-ms" min="0" max="999" value="000" 
+                       aria-describedby="offset-error" aria-required="true" placeholder="mmm">
+                <span class="time-label" aria-hidden="true">ms</span>
+              </div>
+            </div>
+            <div id="offset-error" class="field-error" role="alert" hidden></div>
+          </fieldset>
+
+          <!-- Media Type -->
+          <div class="form-field">
+            <label for="media-type" class="field-label">
+              Media Type <span class="required-indicator" aria-hidden="true">*</span>
+            </label>
+            <select id="media-type" class="select-input" aria-describedby="media-type-error" aria-required="true">
+              <option value="music">music</option>
+              <option value="talk">talk</option>
+              <option value="id">id</option>
+              <option value="promo">promo</option>
+              <option value="ad">ad</option>
+            </select>
+            <div id="media-type-error" class="field-error" role="alert" hidden></div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <!-- Title -->
+          <div class="form-field form-field-flex">
+            <label for="title" class="field-label">
+              Title <span class="required-indicator" aria-hidden="true">*</span>
+            </label>
+            <input type="text" id="title" class="text-input" maxlength="500" 
+                   aria-describedby="title-error" aria-required="true" autocomplete="off">
+            <div id="title-error" class="field-error" role="alert" hidden></div>
+          </div>
+
+          <!-- Artist -->
+          <div class="form-field form-field-flex">
+            <label for="artist" class="field-label">
+              Artist <span class="required-indicator" aria-hidden="true">*</span>
+            </label>
+            <input type="text" id="artist" class="text-input" maxlength="500" 
+                   aria-describedby="artist-help artist-error" aria-required="true" autocomplete="off">
+            <span id="artist-help" class="field-help">Required for music/talk</span>
+            <div id="artist-error" class="field-error" role="alert" hidden></div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <!-- Album -->
+          <div class="form-field form-field-flex">
+            <label for="album" class="field-label">Album</label>
+            <input type="text" id="album" class="text-input" maxlength="500" 
+                   aria-describedby="album-help album-error" autocomplete="off">
+            <span id="album-help" class="field-help">Optional</span>
+            <div id="album-error" class="field-error" role="alert" hidden></div>
+          </div>
+
+          <!-- Year -->
+          <div class="form-field form-field-small">
+            <label for="year" class="field-label">Year</label>
+            <input type="text" id="year" class="text-input" maxlength="4" pattern="\d{4}"
+                   aria-describedby="year-help year-error" autocomplete="off">
+            <span id="year-help" class="field-help">Optional, 4 digits</span>
+            <div id="year-error" class="field-error" role="alert" hidden></div>
+          </div>
+
+          <!-- Add Button -->
+          <div class="form-field form-field-button">
+            <button type="submit" id="btn-add-row" class="btn btn-primary btn-add">
+              Add Row
+            </button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- Data Grid Section -->
+    <section class="grid-section" aria-labelledby="grid-heading">
+      <div class="grid-header">
+        <h2 id="grid-heading" class="section-heading">
+          Cue Sheet
+          <span id="row-count" class="row-count">(0 rows)</span>
+        </h2>
+        <div class="grid-actions">
+          <button type="button" id="btn-clear-all" class="btn btn-danger btn-small" disabled>
+            Clear All
+          </button>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div id="empty-state" class="empty-state">
+        <p class="empty-state-text">No songs added yet.</p>
+        <p class="empty-state-hint">Use the Quick Add form above to add your first row, or import an existing file.</p>
+      </div>
+
+      <!-- Data Grid -->
+      <div id="grid-container" class="grid-container" hidden>
+        <div class="grid-instructions" id="grid-instructions">
+          <strong>Keyboard navigation:</strong> Arrow keys to move, Enter or Space to edit, Insert to add row above, Delete to remove row, Escape to cancel.
+          <span class="visually-hidden">Screen reader users: This is an interactive grid. Press Enter or Space on any cell to edit it. Use arrow keys to navigate between cells. Press Insert to add a new row above the current row.</span>
+        </div>
+        <!-- role=application forces screen readers like JAWS into forms/application mode -->
+        <div role="application" aria-label="Cue sheet data grid - use arrow keys to navigate, Enter to edit cells">
+        <table id="data-grid" class="data-grid" role="grid" aria-labelledby="grid-heading" aria-describedby="grid-instructions">
+          <thead>
+            <tr role="row">
+              <th scope="col" role="columnheader" class="col-row-num">#</th>
+              <th scope="col" role="columnheader" class="col-offset">Offset</th>
+              <th scope="col" role="columnheader" class="col-media-type">Media Type</th>
+              <th scope="col" role="columnheader" class="col-title">Title</th>
+              <th scope="col" role="columnheader" class="col-artist">Artist</th>
+              <th scope="col" role="columnheader" class="col-album">Album</th>
+              <th scope="col" role="columnheader" class="col-year">Year</th>
+              <th scope="col" role="columnheader" class="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="grid-body" role="rowgroup">
+            <!-- Rows will be inserted here dynamically -->
+          </tbody>
+        </table>
+        </div><!-- end role=application -->
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer" role="contentinfo">
+    <p>QueueMe generates CSV files compatible with Live365 MultiTrack.</p>
+    <p class="footer-privacy">No data is stored or transmitted. All processing happens in your browser.</p>
+  </footer>
+
+  <!-- Modal: New Session -->
+  <dialog id="modal-new-session" class="modal" aria-labelledby="modal-new-title">
+    <div class="modal-content">
+      <h2 id="modal-new-title" class="modal-title">New Cue Sheet</h2>
+      <form id="new-session-form" class="modal-form">
+        <div class="form-field">
+          <label for="new-file-name" class="field-label">
+            Enter file name for your cue sheet:
+          </label>
+          <div class="file-name-input-group">
+            <input type="text" id="new-file-name" class="text-input" 
+                   value="my-cue-sheet" autocomplete="off" aria-describedby="file-name-suffix">
+            <span id="file-name-suffix" class="file-suffix">.csv</span>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="btn-cancel-new" class="btn btn-secondary">Cancel</button>
+          <button type="submit" id="btn-confirm-new" class="btn btn-primary">Create</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- Modal: Import -->
+  <dialog id="modal-import" class="modal" aria-labelledby="modal-import-title">
+    <div class="modal-content modal-content-wide">
+      <h2 id="modal-import-title" class="modal-title">Import File</h2>
+      <div id="import-dropzone" class="import-dropzone" tabindex="0" 
+           role="button" aria-describedby="import-instructions">
+        <div class="dropzone-content">
+          <span class="dropzone-icon" aria-hidden="true">📁</span>
+          <p class="dropzone-text">Drag and drop a file here</p>
+          <p class="dropzone-or">or</p>
+          <button type="button" id="btn-browse-files" class="btn btn-secondary">Browse Files</button>
+          <input type="file" id="file-input" class="visually-hidden" accept=".csv,.xlsx" aria-label="Choose file to import">
+        </div>
+        <p id="import-instructions" class="dropzone-hint">Accepts .csv and .xlsx files</p>
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="btn-cancel-import" class="btn btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Modal: Column Mapping -->
+  <dialog id="modal-mapping" class="modal" aria-labelledby="modal-mapping-title">
+    <div class="modal-content modal-content-wide">
+      <h2 id="modal-mapping-title" class="modal-title">Map Columns</h2>
+      <p class="modal-description">Match your file's columns to QueueMe fields:</p>
+      
+      <div id="mapping-error" class="mapping-error" role="alert" hidden></div>
+      
+      <table class="mapping-table" role="grid">
+        <thead>
+          <tr>
+            <th scope="col">QueueMe Field</th>
+            <th scope="col">Your File Column</th>
+          </tr>
+        </thead>
+        <tbody id="mapping-body">
+          <!-- Mapping rows will be inserted here -->
+        </tbody>
+      </table>
+      
+      <div class="modal-actions">
+        <button type="button" id="btn-cancel-mapping" class="btn btn-secondary">Cancel</button>
+        <button type="button" id="btn-complete-mapping" class="btn btn-primary">Complete Import</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Modal: Confirm Clear -->
+  <dialog id="modal-confirm" class="modal" aria-labelledby="modal-confirm-title">
+    <div class="modal-content">
+      <h2 id="modal-confirm-title" class="modal-title">Confirm Action</h2>
+      <p id="modal-confirm-message" class="modal-message"></p>
+      <div class="modal-actions">
+        <button type="button" id="btn-confirm-cancel" class="btn btn-secondary">Cancel</button>
+        <button type="button" id="btn-confirm-action" class="btn btn-danger">Confirm</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Scripts -->
+  <script src="vendor/xlsx.mini.min.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/validation.js"></script>
+  <script src="js/csv.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/a11y.js"></script>
+  <script src="js/modal.js"></script>
+  <script src="js/grid.js"></script>
+  <script src="js/form.js"></script>
+  <script src="js/import.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
