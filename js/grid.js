@@ -82,21 +82,22 @@ const Grid = {
             const value = row[col.key] || '';
             const hasError = rowErrors[col.key];
             const cellId = `cell-${row.id}-${col.key}`;
+            const headerId = `col-${col.key}`;
             // Use a focusable span with role="button" inside each cell for reliable JAWS focus
             return `
-              <td role="gridcell" 
+              <td role="gridcell"
                   id="${cellId}"
                   class="grid-cell ${hasError ? 'cell-error' : ''}"
                   data-row-index="${rowIndex}"
                   data-col-index="${colIndex}"
                   data-field="${col.key}"
                   aria-colindex="${colIndex + 2}"
+                  headers="${headerId}"
                   ${hasError ? 'aria-describedby="' + cellId + '-error"' : ''}>
                 <span class="cell-content"
-                      role="button"
                       tabindex="${rowIndex === 0 && colIndex === 0 ? '0' : '-1'}"
-                      aria-label="${col.label}: ${value || 'empty'}${hasError ? '. Error: ' + hasError : ''}. Press Enter to edit."
-                      ${hasError ? 'aria-invalid="true"' : ''}>
+                      ${hasError ? 'aria-invalid="true"' : ''}
+                      ${(!value || hasError) ? 'aria-label="' + this._escapeHtml(value || 'empty') + (hasError ? '. Error: ' + hasError : '') + '"' : ''}>
                   ${this._escapeHtml(value) || '<span class="cell-empty" aria-hidden="true">—</span>'}
                 </span>
                 ${hasError ? '<span id="' + cellId + '-error" class="visually-hidden">' + hasError + '</span>' : ''}
