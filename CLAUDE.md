@@ -21,6 +21,15 @@ npx serve .
 
 Then open `http://localhost:8000` in your browser.
 
+### Building
+
+Before serving, run the build script to inject the last git commit timestamp into the footer:
+```bash
+node build.js
+```
+
+This updates the "Code last updated" timestamp in `index.html` so you can verify you're viewing the latest code.
+
 ### Running Tests
 
 Open the browser console and run:
