@@ -479,6 +479,13 @@ main {
 
 .field-error::before {
   content: '✗';
+  /* Hide from screen readers - decorative only */
+  speak: never;
+}
+
+/* Don't show the icon when error is hidden */
+.field-error[hidden]::before {
+  content: none;
 }
 
 /* Time Builder */
