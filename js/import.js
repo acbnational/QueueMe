@@ -66,9 +66,9 @@ const Import = {
    * Open the import dialog
    */
   openDialog() {
-    // Reset file input
+    // Reset file input and directly open the file picker
     this._fileInput.value = '';
-    Modal.open('modal-import');
+    this._fileInput.click();
   },
 
   /**
