@@ -4,14 +4,29 @@
  * Run with: node build.js
  */
 
-const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
 const indexPath = path.join(__dirname, 'index.html');
 
-// Get the last commit date/time in ISO format
-const timestamp = execSync('git log -1 --format=%ci', { encoding: 'utf-8' }).trim();
+// Get the current date/time formatted like git's %ci output: YYYY-MM-DD HH:MM:SS ±HHMM
+function getCurrentTimestamp() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const year = now.getFullYear();
+  const month = pad(now.getMonth() + 1);
+  const day = pad(now.getDate());
+  const hours = pad(now.getHours());
+  const minutes = pad(now.getMinutes());
+  const seconds = pad(now.getSeconds());
+  const offsetMinutes = -now.getTimezoneOffset();
+  const sign = offsetMinutes >= 0 ? '+' : '-';
+  const absOffset = Math.abs(offsetMinutes);
+  const offsetHours = pad(Math.floor(absOffset / 60));
+  const offsetMins = pad(absOffset % 60);
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds} ${sign}${offsetHours}${offsetMins}`;
+}
+const timestamp = getCurrentTimestamp();
 
 // Read index.html
 let html = fs.readFileSync(indexPath, 'utf-8');
