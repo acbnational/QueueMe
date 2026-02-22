@@ -22,7 +22,10 @@ const App = {
     
     // Set up clear all button
     this._setupClearAllButton();
-    
+
+    // Set up navigation guard for unsaved changes
+    this._setupNavigationGuard();
+
     // Subscribe to state changes
     State.subscribe((key) => {
       if (key === 'fileName') {
@@ -87,6 +90,15 @@ const App = {
   /**
    * Set up clear all button
    */
+  _setupNavigationGuard() {
+    window.addEventListener('beforeunload', (e) => {
+      if (State.hasUnsavedChanges()) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+  },
+
   _setupClearAllButton() {
     document.getElementById('btn-clear-all').addEventListener('click', () => {
       if (!State.hasRows()) return;
